@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Trading Calculator</title>
+    <script type="text/javascript" nonce="a1fd4f0a1e6b40048d3d6de075e" src="//local.adguard.org?ts=1753803790010&amp;type=content-script&amp;dmn=www.genspark.ai&amp;url=https%3A%2F%2Fwww.genspark.ai%2Fapi%2Faidrive%2Fdownload%2Ffiles%2Frestore_points%2F2025-07-28_Advanced_Trading_Calculator_3_Sections_Perfect_Looking_1.html&amp;app=chrome.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="a1fd4f0a1e6b40048d3d6de075e" src="//local.adguard.org?ts=1753803790010&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script><link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .show-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .show-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .monthly-table {
+            font-size: 1.1em;
+        }
+        .monthly-table th, .monthly-table td {
+            padding: 12px 8px;
+            font-size: 1.1em;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .export-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            transition: all 0.3s ease;
+        }
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+        .disclaimer {
+            font-size: 0.8em;
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            line-height: 1.4;
+        }
+        
+        /* Trading Mode Settings Styles */
+        .trading-mode-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .trading-mode-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .master-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .master-toggle-label {
+            font-weight: bold;
+            color: #374151;
+            font-size: 1rem;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #22c55e;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch.right .toggle-slider {
+            transform: translateX(30px);
+        }
+        
+        .toggle-option {
+            font-weight: bold;
+            color: #374151;
+            font-size: 1rem;
+        }
+        
+        .parameter-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            padding: 6px 0;
+        }
+        
+        .parameter-label {
+            font-weight: 500;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .parameter-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .parameter-input {
+            width: 160px;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            line-height: 1.2;
+            height: 36px;
+        }
+        
+        .question-mark {
+            width: 16px;
+            height: 16px;
+            background: #6b7280;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: help;
+            position: relative;
+        }
+        
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #374151;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            margin-bottom: 5px;
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #374151;
+        }
+        
+        .question-mark:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Top input section labels with question marks */
+        .input-label-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        /* Dashboard cards enhanced */
+        .dashboard-card-label {
+            font-size: 1.05rem !important;
+            font-weight: bold;
+        }
+        
+        .dashboard-card-value {
+            font-size: 1.7rem !important;
+            font-weight: bold;
+        }
+        
+        .dashboard-card-icon {
+            font-size: 2.5rem !important;
+        }
+        
+        /* Export-specific styles */
+        .export-capture input {
+            line-height: 1.4 !important;
+            padding: 6px 12px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .export-capture .parameter-input {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1.4 !important;
+            padding: 6px 12px !important;
+        }
+        
+         {
+            body {
+                background: white !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-calculator text-green-400 text-4xl mr-4"></i>
+                <h1 class="text-4xl font-bold text-white">Advanced Trading Calculator</h1>
+            </div>
+            <p class="text-xl text-white font-semibold">Compound Trading Estimator with Monthly Projections</p>
+        </div>
+
+        <!-- Input Parameters -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4">
+                <div class="input-label-container">
+                    <label class="block text-white text-base font-bold">Initial Investment ($)</label>
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Starting capital amount for your trading account</div>
+                    </div>
+                </div>
+                <input type="number" id="initial" value="2000" min="0" step="100" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+            </div>
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4">
+                <div class="input-label-container">
+                    <label class="block text-white text-base font-bold">Trades per Day</label>
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Number of trading operations executed daily</div>
+                    </div>
+                </div>
+                <input type="number" id="tradesperday" value="2" min="1" max="50" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+            </div>
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4">
+                <div class="input-label-container">
+                    <label class="block text-white text-base font-bold">Trades Completed (%)</label>
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Percentage of daily trades successfully completed</div>
+                    </div>
+                </div>
+                <input type="number" id="tradescompleted" value="100" min="0" max="100" step="5" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+            </div>
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4">
+                <div class="input-label-container">
+                    <label class="block text-white text-base font-bold">Gain per Trade (%)</label>
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Profit percentage earned per successful trade</div>
+                    </div>
+                </div>
+                <input type="number" id="percentgain" value="62.5" min="0" max="1000" step="0.1" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+            </div>
+        </div>
+
+        <!-- Trading Mode Settings -->
+        <div class="trading-mode-container">
+            <h3 class="trading-mode-title">Trading Mode Settings</h3>
+            
+            <!-- Master Toggle -->
+            <div class="master-toggle-container">
+                <span class="master-toggle-label">Trading Mode:</span>
+                <span class="toggle-option">DSJ</span>
+                <div class="toggle-switch" id="masterToggle" onclick="toggleMaster()">
+                    <div class="toggle-slider"></div>
+                </div>
+                <span class="toggle-option">TXEX</span>
+                <div class="question-mark">
+                    ?
+                    <div class="tooltip">Fast Switchable Exchange Settings between DSJ or TXEX</div>
+                </div>
+            </div>
+            
+            <!-- Parameter Lines -->
+            <div class="parameter-line">
+                <div class="parameter-label">
+                    Initial Investment
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Starting capital amount for trading</div>
+                    </div>
+                </div>
+                <div class="parameter-controls">
+                    <input type="number" class="parameter-input" id="initialLeft" value="2000" step="100">
+                    <div class="toggle-switch" id="initialToggle" onclick="toggleParameter('initial')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <input type="number" class="parameter-input" id="initialRight" value="2000" step="100">
+                </div>
+            </div>
+            
+            <div class="parameter-line">
+                <div class="parameter-label">
+                    Trades per Day
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Number of trading operations per day</div>
+                    </div>
+                </div>
+                <div class="parameter-controls">
+                    <input type="number" class="parameter-input" id="tradesLeft" value="2">
+                    <div class="toggle-switch" id="tradesToggle" onclick="toggleParameter('trades')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <input type="number" class="parameter-input" id="tradesRight" value="3">
+                </div>
+            </div>
+            
+            <div class="parameter-line">
+                <div class="parameter-label">
+                    Trades Completed
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Percentage of trades successfully completed</div>
+                    </div>
+                </div>
+                <div class="parameter-controls">
+                    <input type="number" class="parameter-input" id="completedLeft" value="100">
+                    <div class="toggle-switch" id="completedToggle" onclick="toggleParameter('completed')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <input type="number" class="parameter-input" id="completedRight" value="100">
+                </div>
+            </div>
+            
+            <div class="parameter-line">
+                <div class="parameter-label">
+                    Gain per Trade
+                    <div class="question-mark">
+                        ?
+                        <div class="tooltip">Profit percentage per successful trade</div>
+                    </div>
+                </div>
+                <div class="parameter-controls">
+                    <input type="number" class="parameter-input" id="gainLeft" value="62.5" step="0.1">
+                    <div class="toggle-switch" id="gainToggle" onclick="toggleParameter('gain')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <input type="number" class="parameter-input" id="gainRight" value="55.0" step="0.1">
+                </div>
+            </div>
+        </div>
+
+        <!-- Show Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            <div class="show-card rounded-lg p-6 text-center" style="background-color: #2E4A62;">
+                <div class="dashboard-card-icon mb-2">
+                    <i class="fas fa-dollar-sign text-green-400"></i>
+                </div>
+                <div class="text-white dashboard-card-label mb-1">TOTAL INVESTED</div>
+                <div id="totalInvested" class="text-white dashboard-card-value">$2,000</div>
+            </div>
+            <div class="show-card rounded-lg p-6 text-center" style="background-color: #228B22;">
+                <div class="dashboard-card-icon mb-2">
+                    <i class="fas fa-trophy text-yellow-400"></i>
+                </div>
+                <div class="text-white dashboard-card-label mb-1">FINAL VALUE</div>
+                <div id="finalValue" class="text-white dashboard-card-value">$0</div>
+            </div>
+            <div class="show-card rounded-lg p-6 text-center" style="background-color: #50C878;">
+                <div class="dashboard-card-icon mb-2">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <div class="text-white dashboard-card-label mb-1">TOTAL PROFIT</div>
+                <div id="totalProfit" class="text-white dashboard-card-value">$0</div>
+            </div>
+            <div class="show-card rounded-lg p-6 text-center" style="background-color: #006994;">
+                <div class="dashboard-card-icon mb-2">
+                    <i class="fas fa-percentage text-white"></i>
+                </div>
+                <div class="text-white dashboard-card-label mb-1">ROI PERCENTAGE</div>
+                <div id="roiPercentage" class="text-white dashboard-card-value">0%</div>
+            </div>
+            <div class="show-card rounded-lg p-6 text-center" style="background-color: #B19CD9;">
+                <div class="dashboard-card-icon mb-2">
+                    <i class="fas fa-check text-white"></i>
+                </div>
+                <div class="text-white dashboard-card-label mb-1">TRADES DONE</div>
+                <div id="tradesDone" class="text-white dashboard-card-value">0</div>
+            </div>
+            <div class="show-card rounded-lg p-6 text-center" style="background-color: #FF8C00;">
+                <div class="dashboard-card-icon mb-2">
+                    <i class="fas fa-calendar text-white"></i>
+                </div>
+                <div class="text-white dashboard-card-label mb-1">DAYS ACTIVE</div>
+                <div id="daysActive" class="text-white dashboard-card-value">365</div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="flex justify-center gap-4 mb-8">
+            <button onclick="resetToDefaults()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                <i class="fas fa-undo mr-2"></i>Reset to Defaults
+            </button>
+            <button onclick="exportTextReport()" class="export-btn text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-file-pdf mr-2"></i>Export Data Text
+            </button>
+            <button onclick="exportPictureReport()" class="export-btn text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-camera mr-2"></i>Export Data Picture
+            </button>
+        </div>
+
+        <!-- Monthly Projections -->
+        <div class="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Monthly Projections</h2>
+            <div class="overflow-x-auto">
+                <table class="monthly-table w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-4 py-3 text-left font-bold">Month</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-bold">Days/Period</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-bold">Days</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-bold">Trades</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-bold">Total - New</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-bold">Total - Profit</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-bold">Monthly Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTable">
+                        <!-- Monthly data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Monthly Profit Chart -->
+        <div class="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Monthly Profit Chart</h2>
+            <div class="chart-container">
+                <canvas id="monthlyProfitChart" style="height: 400px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Performance Chart</h2>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            These projections are estimates based on hypothetical trading scenarios and the exchange's written performance and trading descriptions, charts, tables, diagrams, graphs, statements, testimonials, etc. Actual results may vary significantly due to market conditions, execution timing, and individual trading decisions. Success depends on the continued viability and performance of the DSL and TXEX trading platform, which operates independently of this calculator. This tool is provided for educational and planning purposes only and should not be considered as financial advice or guaranteed investment outcomes. Users should conduct their own research and consider consulting with financial professionals before making investment decisions.
+        </div>
+    </div>
+
+    <script>
+        let chart;
+        let monthlyProfitChart;
+        const monthDays = [31, 30, 30, 31, 30, 30, 31, 30, 30, 31, 30, 31];
+        let masterToggleState = 'DSJ'; // DSJ = left, TXEX = right
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US').format(num);
+        }
+
+        function toggleMaster() {
+            const masterToggle = document.getElementById('masterToggle');
+            const isRight = masterToggle.classList.contains('right');
+            
+            if (isRight) {
+                // Switch to DSJ (left)
+                masterToggle.classList.remove('right');
+                masterToggleState = 'DSJ';
+                // Set all individual toggles to left
+                document.getElementById('initialToggle').classList.remove('right');
+                document.getElementById('tradesToggle').classList.remove('right');
+                document.getElementById('completedToggle').classList.remove('right');
+                document.getElementById('gainToggle').classList.remove('right');
+                // Update main inputs
+                document.getElementById('initial').value = document.getElementById('initialLeft').value;
+                document.getElementById('tradesperday').value = document.getElementById('tradesLeft').value;
+                document.getElementById('tradescompleted').value = document.getElementById('completedLeft').value;
+                document.getElementById('percentgain').value = document.getElementById('gainLeft').value;
+            } else {
+                // Switch to TXEX (right)
+                masterToggle.classList.add('right');
+                masterToggleState = 'TXEX';
+                // Set all individual toggles to right
+                document.getElementById('initialToggle').classList.add('right');
+                document.getElementById('tradesToggle').classList.add('right');
+                document.getElementById('completedToggle').classList.add('right');
+                document.getElementById('gainToggle').classList.add('right');
+                // Update main inputs
+                document.getElementById('initial').value = document.getElementById('initialRight').value;
+                document.getElementById('tradesperday').value = document.getElementById('tradesRight').value;
+                document.getElementById('tradescompleted').value = document.getElementById('completedRight').value;
+                document.getElementById('percentgain').value = document.getElementById('gainRight').value;
+            }
+            calculateResults();
+        }
+
+        function toggleParameter(param) {
+            const toggle = document.getElementById(param + 'Toggle');
+            const isRight = toggle.classList.contains('right');
+            
+            if (isRight) {
+                toggle.classList.remove('right');
+            } else {
+                toggle.classList.add('right');
+            }
+            
+            updateMainInput(param);
+        }
+
+        function updateMainInput(param) {
+            const toggle = document.getElementById(param + 'Toggle');
+            const isRight = toggle.classList.contains('right');
+            
+            let value;
+            if (param === 'initial') {
+                value = isRight ? document.getElementById('initialRight').value : document.getElementById('initialLeft').value;
+                document.getElementById('initial').value = value;
+            } else if (param === 'trades') {
+                value = isRight ? document.getElementById('tradesRight').value : document.getElementById('tradesLeft').value;
+                document.getElementById('tradesperday').value = value;
+            } else if (param === 'completed') {
+                value = isRight ? document.getElementById('completedRight').value : document.getElementById('completedLeft').value;
+                document.getElementById('tradescompleted').value = value;
+            } else if (param === 'gain') {
+                value = isRight ? document.getElementById('gainRight').value : document.getElementById('gainLeft').value;
+                document.getElementById('percentgain').value = value;
+            }
+            
+            calculateResults();
+        }
+
+        function calculateResults() {
+            const initial = parseFloat(document.getElementById('initial').value) || 2000;
+            const tradesPerDay = parseInt(document.getElementById('tradesperday').value) || 2;
+            const tradesCompleted = parseFloat(document.getElementById('tradescompleted').value) || 100;
+            const percentGain = parseFloat(document.getElementById('percentgain').value) || 62.5;
+
+            const multiplier = 1 + (0.01 * percentGain / 100);
+            const monthlyData = [];
+            let cumulativeDays = 0;
+            let previousProfit = 0;
+
+            for (let month = 1; month <= 12; month++) {
+                const daysInMonth = monthDays[month - 1];
+                cumulativeDays += daysInMonth;
+                
+                const totalTrades = Math.floor(cumulativeDays * tradesPerDay * tradesCompleted / 100);
+                const totalNew = initial * Math.pow(multiplier, totalTrades);
+                const totalProfit = totalNew - initial;
+                const timePeriodProfit = totalProfit - previousProfit;
+
+                monthlyData.push({
+                    month: month,
+                    daysInMonth: daysInMonth,
+                    cumulativeDays: cumulativeDays,
+                    trades: totalTrades,
+                    totalNew: totalNew,
+                    totalProfit: totalProfit,
+                    timePeriodProfit: timePeriodProfit
+                });
+
+                previousProfit = totalProfit;
+            }
+
+            updateShowCards(initial, monthlyData);
+            updateMonthlyTable(monthlyData);
+            updateChart(monthlyData);
+            updateMonthlyProfitChart(monthlyData);
+        }
+
+        function updateShowCards(initial, monthlyData) {
+            const finalData = monthlyData[11]; // Month 12 (index 11)
+            const roi = ((finalData.totalNew - initial) / initial) * 100;
+
+            document.getElementById('totalInvested').textContent = formatCurrency(initial);
+            document.getElementById('finalValue').textContent = formatCurrency(finalData.totalNew);
+            document.getElementById('totalProfit').textContent = formatCurrency(finalData.totalProfit);
+            document.getElementById('roiPercentage').textContent = roi.toFixed(1) + '%';
+            document.getElementById('tradesDone').textContent = formatNumber(finalData.trades);
+            document.getElementById('daysActive').textContent = '365';
+        }
+
+        function updateMonthlyTable(monthlyData) {
+            const tableBody = document.getElementById('monthlyTable');
+            tableBody.innerHTML = '';
+
+            monthlyData.forEach((data, index) => {
+                const row = document.createElement('tr');
+                const bgColor = index % 2 === 0 ? 'bg-white' : 'bg-yellow-50';
+                row.className = bgColor;
+
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-3">Month ${data.month}</td>
+                    <td class="border border-gray-300 px-4 py-3">${data.daysInMonth}</td>
+                    <td class="border border-gray-300 px-4 py-3">${data.cumulativeDays}</td>
+                    <td class="border border-gray-300 px-4 py-3">${formatNumber(data.trades)}</td>
+                    <td class="border border-gray-300 px-4 py-3">${formatCurrency(data.totalNew)}</td>
+                    <td class="border border-gray-300 px-4 py-3 text-green-600 font-semibold">${formatCurrency(data.totalProfit)}</td>
+                    <td class="border border-gray-300 px-4 py-3 text-blue-600 font-semibold">${formatCurrency(data.timePeriodProfit)}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateMonthlyProfitChart(monthlyData) {
+            const ctx = document.getElementById('monthlyProfitChart').getContext('2d');
+            
+            if (monthlyProfitChart) {
+                monthlyProfitChart.destroy();
+            }
+
+            const labels = monthlyData.map(data => `Month ${data.month}`);
+            const monthlyProfits = monthlyData.map(data => data.timePeriodProfit);
+
+            monthlyProfitChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Profit',
+                        data: monthlyProfits,
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderColor: '#22c55e',
+                        borderWidth: 2,
+                        type: 'bar'
+                    }, {
+                        label: 'Monthly Profit Trend',
+                        data: monthlyProfits,
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.1,
+                        type: 'line',
+                        pointBackgroundColor: '#16a34a',
+                        pointBorderColor: '#16a34a',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                },
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            },
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(monthlyData) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+
+            const labels = monthlyData.map(data => `Month ${data.month}`);
+            const totalValues = monthlyData.map(data => data.totalNew);
+            const profitValues = monthlyData.map(data => data.totalProfit);
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Asset Value',
+                        data: totalValues,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.1
+                    }, {
+                        label: 'Total Profit',
+                        data: profitValues,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                },
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            },
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function resetToDefaults() {
+            document.getElementById('initial').value = 2000;
+            document.getElementById('tradesperday').value = 2;
+            document.getElementById('tradescompleted').value = 100;
+            document.getElementById('percentgain').value = 62.5;
+            
+            // Reset trading mode settings
+            document.getElementById('initialLeft').value = 2000;
+            document.getElementById('initialRight').value = 2000;
+            document.getElementById('tradesLeft').value = 2;
+            document.getElementById('tradesRight').value = 3;
+            document.getElementById('completedLeft').value = 100;
+            document.getElementById('completedRight').value = 100;
+            document.getElementById('gainLeft').value = 62.5;
+            document.getElementById('gainRight').value = 55.0;
+            
+            // Reset all toggles to left (DSJ)
+            document.getElementById('masterToggle').classList.remove('right');
+            document.getElementById('initialToggle').classList.remove('right');
+            document.getElementById('tradesToggle').classList.remove('right');
+            document.getElementById('completedToggle').classList.remove('right');
+            document.getElementById('gainToggle').classList.remove('right');
+            
+            masterToggleState = 'DSJ';
+            calculateResults();
+        }
+
+        function exportTextReport() {
+            const { jsPDF } = window.jsPDF;
+            const doc = new jsPDF('p', 'mm', 'letter');
+            
+            // Get current data
+            const initial = parseFloat(document.getElementById('initial').value) || 2000;
+            const tradesPerDay = parseInt(document.getElementById('tradesperday').value) || 2;
+            const tradesCompleted = parseFloat(document.getElementById('tradescompleted').value) || 100;
+            const percentGain = parseFloat(document.getElementById('percentgain').value) || 62.5;
+            
+            // Calculate results for PDF
+            const multiplier = 1 + (0.01 * percentGain / 100);
+            const monthlyData = [];
+            let cumulativeDays = 0;
+            let previousProfit = 0;
+
+            for (let month = 1; month <= 12; month++) {
+                const daysInMonth = monthDays[month - 1];
+                cumulativeDays += daysInMonth;
+                
+                const totalTrades = Math.floor(cumulativeDays * tradesPerDay * tradesCompleted / 100);
+                const totalNew = initial * Math.pow(multiplier, totalTrades);
+                const totalProfit = totalNew - initial;
+                const timePeriodProfit = totalProfit - previousProfit;
+
+                monthlyData.push({
+                    month: month,
+                    daysInMonth: daysInMonth,
+                    cumulativeDays: cumulativeDays,
+                    trades: totalTrades,
+                    totalNew: totalNew,
+                    totalProfit: totalProfit,
+                    timePeriodProfit: timePeriodProfit
+                });
+
+                previousProfit = totalProfit;
+            }
+            
+            // Header
+            doc.setFontSize(20);
+            doc.text('Advanced Trading Calculator Report', 20, 30);
+            
+            // Date and parameters
+            doc.setFontSize(12);
+            doc.text('Generated on: ' + new Date().toLocaleDateString(), 20, 50);
+            doc.text('Trading Mode: ' + masterToggleState, 20, 60);
+            
+            doc.text('Parameters:', 20, 80);
+            doc.text('Initial Investment: ' + formatCurrency(initial), 30, 90);
+            doc.text('Trades per Day: ' + tradesPerDay, 30, 100);
+            doc.text('Trades Completed: ' + tradesCompleted + '%', 30, 110);
+            doc.text('Gain per Trade: ' + percentGain + '%', 30, 120);
+            
+            // Summary
+            const finalData = monthlyData[11];
+            const roi = ((finalData.totalNew - initial) / initial) * 100;
+            
+            doc.text('Summary:', 20, 140);
+            doc.text('Final Value: ' + formatCurrency(finalData.totalNew), 30, 150);
+            doc.text('Total Profit: ' + formatCurrency(finalData.totalProfit), 30, 160);
+            doc.text('ROI: ' + roi.toFixed(1) + '%', 30, 170);
+            doc.text('Total Trades: ' + formatNumber(finalData.trades), 30, 180);
+            
+            // Monthly breakdown
+            doc.text('Monthly Projections:', 20, 200);
+            let yPos = 210;
+            
+            monthlyData.forEach((data, index) => {
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 30;
+                }
+                doc.setFontSize(10);
+                doc.text(`Month ${data.month}: ${formatCurrency(data.totalNew)} (Monthly Profit: ${formatCurrency(data.timePeriodProfit)})`, 30, yPos);
+                yPos += 10;
+            });
+            
+            doc.save('trading-calculator-report.pdf');
+        }
+
+        function exportPictureReport() {
+            // Wait for fonts to load before capturing
+            document.fonts.ready.then(() => {
+                // Add export-specific class to improve text rendering
+                document.body.classList.add('export-capture');
+                
+                // Hide the control buttons during capture
+                const controlButtons = document.querySelector('.flex.justify-center.gap-4.mb-8');
+                const originalDisplay = controlButtons.style.display;
+                controlButtons.style.display = 'none';
+                
+                // Give a small delay for rendering
+                setTimeout(() => {
+                    html2canvas(document.body, {
+                        scale: 1.2,
+                        useCORS: true,
+                        backgroundColor: '#667eea',
+                        allowTaint: true,
+                        foreignObjectRendering: true,
+                        logging: false,
+                        height: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
+                        width: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+                        scrollX: 0,
+                        scrollY: 0,
+                        onclone: function(clonedDoc) {
+                            // Ensure Font Awesome CSS is loaded in cloned document
+                            const faLink = clonedDoc.querySelector('link[href*="fontawesome"]');
+                            if (!faLink) {
+                                const newFaLink = clonedDoc.createElement('link');
+                                newFaLink.rel = 'stylesheet';
+                                newFaLink.href = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css';
+                                clonedDoc.head.appendChild(newFaLink);
+                            }
+                            
+                            // Ensure input values are preserved in the clone
+                            const originalInputs = document.querySelectorAll('input');
+                            const clonedInputs = clonedDoc.querySelectorAll('input');
+                            
+                            originalInputs.forEach((input, index) => {
+                                if (clonedInputs[index]) {
+                                    clonedInputs[index].value = input.value;
+                                    clonedInputs[index].style.textAlign = 'center';
+                                    clonedInputs[index].style.lineHeight = '1.4';
+                                    clonedInputs[index].style.paddingTop = '8px';
+                                    clonedInputs[index].style.paddingBottom = '8px';
+                                    clonedInputs[index].style.display = 'flex';
+                                    clonedInputs[index].style.alignItems = 'center';
+                                    clonedInputs[index].style.justifyContent = 'center';
+                                }
+                            });
+                            
+                            // Force Font Awesome icons to be visible
+                            const icons = clonedDoc.querySelectorAll('.fas, .far, .fal, .fab');
+                            icons.forEach(icon => {
+                                icon.style.fontFamily = '"Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands", FontAwesome, sans-serif';
+                                icon.style.fontWeight = '900';
+                                icon.style.display = 'inline-block';
+                                icon.style.visibility = 'visible';
+                            });
+                        }
+                    }).then(canvas => {
+                        // Restore original state
+                        document.body.classList.remove('export-capture');
+                        controlButtons.style.display = originalDisplay;
+                        
+                        // Convert to image and download
+                        const link = document.createElement('a');
+                        link.download = 'trading-calculator-screenshot.jpg';
+                        link.href = canvas.toDataURL('image/jpeg', 0.9);
+                        link.click();
+                    }).catch(error => {
+                        // Restore original state on error
+                        document.body.classList.remove('export-capture');
+                        controlButtons.style.display = originalDisplay;
+                        console.error('Export failed:', error);
+                        alert('Export failed. Please try again.');
+                    });
+                }, 500);
+            });
+        }
+
+        // Event listeners for trading mode inputs
+        document.getElementById('initialLeft').addEventListener('input', () => updateMainInput('initial'));
+        document.getElementById('initialRight').addEventListener('input', () => updateMainInput('initial'));
+        document.getElementById('tradesLeft').addEventListener('input', () => updateMainInput('trades'));
+        document.getElementById('tradesRight').addEventListener('input', () => updateMainInput('trades'));
+        document.getElementById('completedLeft').addEventListener('input', () => updateMainInput('completed'));
+        document.getElementById('completedRight').addEventListener('input', () => updateMainInput('completed'));
+        document.getElementById('gainLeft').addEventListener('input', () => updateMainInput('gain'));
+        document.getElementById('gainRight').addEventListener('input', () => updateMainInput('gain'));
+
+        // Event listeners for main inputs
+        document.getElementById('initial').addEventListener('input', calculateResults);
+        document.getElementById('tradesperday').addEventListener('input', calculateResults);
+        document.getElementById('tradescompleted').addEventListener('input', calculateResults);
+        document.getElementById('percentgain').addEventListener('input', calculateResults);
+
+        // Initial calculation
+        calculateResults();
+    </script>
+
+</body>
+</html>
+    <script id="html_badge_script1">
+        window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDghmmCYP9Kbej%2B2JEK7OlME%2Fbh918jK8zj576XHqE%2B8Ecaxedlu9FRB3GFJkiikqDzAMwUHExbhMA68qZldXYwnLF3uAyP7ZpbAfv00JKIo%2Bj0vbY7xt%2B%2FkzrKWBnJsarfzlgFRxDimV0AwgqqAAMPm2c3DarvUtb2yagDeklXtUAOLq2osiPMQ7CkB7oYtHT3Fxj3nRJ9F3gplLt7uVyY%2BhxmcL1cHD4q7JxfJaQaKFEltRbr3J6EyIqX32orKa590Q8IoNYuTITXyEEC5V9CWuHVZ9FWqP2gvSM3ql8HhffUUk%2FQJCo4D3vmRYH5gLBjg5LVHSeP4ZOQwSn8Nv3V%2BeO%2BqZ847kHtTu8DgmGHqSJ9v3U6f0JKZpidzIU%2FxjM4qtpQIP1nvNoa7eR57xLf8r%2FMCwXIg7MYQa4wixqXfkoYy2zRJqjgr5yB7%2FdjYGOsYzi32S%2Bnvq9B3bOKygqnNo74Ryyp5QLvrMbH%2Bdv11pEwydOdaIJdCC5AtsdwcHpQDzbICLajajRFco3jGj%2BaFIoSavYnaLpgS%2BS7VplBb8";
+        window.__genspark_locale = "en-US";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDghmmCYP9Kbej+2JEK7OlME/bh918jK8zj576XHqE+8Ecaxedlu9FRB3GFJkiikqDzAMwUHExbhMA68qZldXYwnLF3uAyP7ZpbAfv00JKIo+j0vbY7xt+/kzrKWBnJsarfzlgFRxDimV0AwgqqAAMPm2c3DarvUtb2yagDeklXtUAOLq2osiPMQ7CkB7oYtHT3Fxj3nRJ9F3gplLt7uVyY+hxmcL1cHD4q7JxfJaQaKFEltRbr3J6EyIqX32orKa590Q8IoNYuTITXyEEC5V9CWuHVZ9FWqP2gvSM3ql8HhffUUk/QJCo4D3vmRYH5gLBjg5LVHSeP4ZOQwSn8Nv3V+eO+qZ847kHtTu8DgmGHqSJ9v3U6f0JKZpidzIU/xjM4qtpQIP1nvNoa7eR57xLf8r/MCwXIg7MYQa4wixqXfkoYy2zRJqjgr5yB7/djYGOsYzi32S+nvq9B3bOKygqnNo74Ryyp5QLvrMbH+dv11pEwydOdaIJdCC5AtsdwcHpQDzbICLajajRFco3jGj+aFIoSavYnaLpgS+S7VplBb8";
+    </script>
+    
+    <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
+    
